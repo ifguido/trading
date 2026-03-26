@@ -541,19 +541,18 @@ class SwingStrategy(BaseStrategy):
             return
         self._last_signal[symbol] = direction  # Actualizar ultima señal emitida
 
-        # Calcular stop-loss y take-profit desde el precio de cierre actual
+        # Calcular stop-loss desde el precio de cierre actual
+        # Take-profit se maneja via trailing stop (no fijo)
         close_price = Decimal(str(current_close))
         if direction == SignalDirection.LONG:
-            # Para posicion larga: SL por debajo, TP por encima del precio
             stop_loss = close_price * (Decimal(1) - self._stop_loss_pct)
-            take_profit = close_price * (Decimal(1) + self._take_profit_pct)
         else:
-            # Para posicion corta: SL por encima, TP por debajo del precio
             stop_loss = close_price * (Decimal(1) + self._stop_loss_pct)
-            take_profit = close_price * (Decimal(1) - self._take_profit_pct)
+        take_profit = None
 
         # Metadata incluye detalles de cada indicador + prediccion AI
         metadata: dict[str, Any] = {
+            "entry_price": float(close_price),
             "fast_ma": round(current_fast_ma, 6),
             "slow_ma": round(current_slow_ma, 6),
             "rsi": round(current_rsi, 2),

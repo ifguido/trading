@@ -421,6 +421,20 @@ class Engine:
             sizer=self._position_sizer,
             circuit_breaker=self._circuit_breaker,
         )
+
+        # Trailing stop: reemplaza take-profit fijo con trailing dinámico (3%)
+        from src.risk.trailing_stop import TrailingStopManager
+        self._trailing_stop = TrailingStopManager(
+            event_bus=self.event_bus,
+            trailing_pct=Decimal("0.03"),
+        )
+
+        # Conectar fills al trailing stop para trackear nuevas posiciones
+        from src.core.events import FillEvent
+        async def _on_fill_trailing(event: FillEvent) -> None:
+            self._trailing_stop.track(event.symbol, event.side.value, event.price)
+        self.event_bus.subscribe(FillEvent, _on_fill_trailing, name="TrailingStop.fill")
+
         logger.info("Risk management initialized (equity: %s %s)", initial_equity, quote_currency)
 
     async def _init_execution(self) -> None:
