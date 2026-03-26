@@ -356,7 +356,17 @@ class Engine:
         # Crear almacen de datos en memoria para acceso rapido
         self._data_store = DataStore(event_bus=self.event_bus, symbols=symbols)
         await self._data_store.start()
-        logger.info("Data components initialized")
+
+        # Market sentiment feed: funding rates + whale detection
+        from src.data.market_sentiment import MarketSentimentFeed
+        self._sentiment_feed = MarketSentimentFeed(
+            event_bus=self.event_bus,
+            symbols=symbols,
+            poll_interval=300,  # Every 5 minutes
+        )
+        await self._sentiment_feed.start()
+
+        logger.info("Data components initialized (including sentiment feed)")
 
     async def _init_risk(self) -> None:
         """Inicializa el sistema de gestion de riesgo.
@@ -563,6 +573,13 @@ class Engine:
             feature_pipeline=self._feature_pipeline,
         )
         await self._strategy_manager.start()
+
+        # Inject sentiment feed into strategies
+        if hasattr(self, '_sentiment_feed') and self._sentiment_feed is not None:
+            for strategy in self._strategy_manager._strategies:
+                if hasattr(strategy, '_sentiment_feed'):
+                    strategy._sentiment_feed = self._sentiment_feed
+
         logger.info("Strategies initialized")
 
     async def _init_monitoring(self) -> None:

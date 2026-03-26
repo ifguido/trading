@@ -123,6 +123,12 @@ class SwingStrategy(BaseStrategy):
         # Peso del voto AI (1.5 = vale mas que un indicador individual)
         self._ai_weight: float = float(self._params.get("ai_weight", 1.5))
 
+        # Peso del voto de sentiment (funding rates + whales)
+        self._sentiment_weight: float = float(self._params.get("sentiment_weight", 1.0))
+
+        # Referencia al feed de sentiment (se inyecta desde el engine)
+        self._sentiment_feed: Any | None = None
+
         # DataFrames de velas por simbolo: symbol -> DataFrame
         self._candles: dict[str, pd.DataFrame] = {}
 
@@ -511,6 +517,20 @@ class SwingStrategy(BaseStrategy):
                 "AI vote para %s: %s (confidence=%.2f, weight=%.1f)",
                 symbol, ai_signal.direction.value, ai_signal.confidence, self._ai_weight,
             )
+
+        # 6) Sentiment Vote — funding rates + whale activity
+        if self._sentiment_feed is not None:
+            sentiment = self._sentiment_feed.latest.get(symbol)
+            if sentiment is not None and abs(sentiment.sentiment_score) > 0.1:
+                total_indicators += self._sentiment_weight
+                if sentiment.sentiment_score > 0:
+                    bullish_votes += self._sentiment_weight * abs(sentiment.sentiment_score)
+                else:
+                    bearish_votes += self._sentiment_weight * abs(sentiment.sentiment_score)
+                logger.info(
+                    "Sentiment vote %s: score=%.2f funding=%.6f whale_bias=%.2f",
+                    symbol, sentiment.sentiment_score, sentiment.funding_rate, sentiment.whale_bias,
+                )
 
         # ── Determinar direccion y confianza ───────────────────────────
         # Score neto: positivo = alcista, negativo = bajista
