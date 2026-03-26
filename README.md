@@ -8,9 +8,11 @@
 
 # CryptoTrader
 
-**Automated cryptocurrency trading bot for Binance spot markets.** Event-driven architecture with AI-powered signal generation, multi-indicator technical analysis, real-time risk management, and a live web dashboard.
+**Automated cryptocurrency trading bot for Binance spot markets.** Event-driven architecture with AI-powered signal generation, multi-indicator technical analysis, market sentiment analysis, and real-time risk management.
 
-Built entirely in async Python. Designed to run 24/7 on a $4 VPS.
+Built entirely in async Python. Runs 24/7 on a $4 VPS.
+
+**[See it live](http://165.232.168.225:8080/live)**
 
 ---
 
@@ -20,21 +22,41 @@ Built entirely in async Python. Designed to run 24/7 on a $4 VPS.
 Market Data (WebSocket)
        |
 OHLCVAggregator --> DataStore
+       |                              MarketSentimentFeed
+       |                              (funding rates + whale detection)
+FeaturePipeline --> AI Model                    |
+       |                                        |
+Strategy (6-voter system) <--------------------+
        |
-FeaturePipeline --> AI Model (GradientBoosting)
-       |
-Strategy (Swing / Scalping) --> SignalEvent
+       | SignalEvent
        |
 RiskManager --> validation + position sizing
        |
 OrderExecutor --> Binance API
        |
-FillHandler --> PortfolioTracker
+FillHandler --> PortfolioTracker --> TrailingStopManager
        |
-Web UI / Telegram / Database
+Web UI / Public Dashboard / Telegram / Database
 ```
 
 All components communicate through an async **EventBus** (pub/sub). Zero tight coupling.
+
+---
+
+## Signal Generation: 6-Voter System
+
+Every trading signal requires confluence from multiple independent indicators:
+
+| # | Voter | Weight | What it measures |
+|---|-------|--------|------------------|
+| 1 | **MA Crossover** | 1.0 | Trend direction (fast vs slow moving average) |
+| 2 | **RSI** | 1.0 | Overbought/oversold conditions |
+| 3 | **MACD** | 1.0 | Momentum and trend strength |
+| 4 | **Bollinger Bands** | 1.0 | Volatility and mean reversion |
+| 5 | **AI Model** | 1.5 | GradientBoosting with 20+ engineered features |
+| 6 | **Market Sentiment** | 1.0 | Funding rates (contrarian) + whale activity |
+
+A signal is only emitted when confidence >= 0.4 (40% confluence). No single indicator can trigger a trade.
 
 ---
 
@@ -42,10 +64,14 @@ All components communicate through an async **EventBus** (pub/sub). Zero tight c
 
 | Feature | Details |
 |---|---|
-| **Strategies** | Swing (MA crossover + RSI + MACD + Bollinger) and Scalping (order book imbalance) |
-| **AI Model** | scikit-learn GradientBoosting with 20+ engineered features. Acts as 5th voter in the strategy |
+| **Strategies** | Swing (6-voter confluence) and Scalping (order book imbalance) |
+| **AI Model** | scikit-learn GradientBoosting trained on 365 days of OHLCV data |
+| **Market Sentiment** | Funding rates from Binance Futures (contrarian signal) + whale trade detection ($50k+) |
+| **Trailing Stop** | Dynamic exit — follows price up, sells on 3% retrace from peak. No fixed take-profit ceiling |
 | **Risk Management** | Circuit breaker, position sizing, max drawdown, daily loss limit, mandatory stop-loss |
-| **Web Dashboard** | Real-time prices, portfolio, trades, signals. Protected by login with brute-force lockout |
+| **Web Dashboard** | Real-time portfolio, trades, signals. Protected by login with brute-force lockout |
+| **Public Dashboard** | Read-only live view at `/live` — no login required. Link it anywhere |
+| **Auto-Start** | Bot starts automatically on server boot with `AUTO_START=true` |
 | **Paper Trading** | Full simulation mode without risking real funds |
 | **Notifications** | Optional Telegram alerts on trades and system events |
 | **Database** | SQLite (local) or PostgreSQL (production). Stores all trades, signals, and orders |
@@ -56,12 +82,13 @@ All components communicate through an async **EventBus** (pub/sub). Zero tight c
 ## Risk Controls
 
 ```yaml
-max_position_pct: 10%          # Max 10% of portfolio per trade
-max_total_exposure_pct: 50%    # Max 50% total exposure
-max_concurrent_positions: 6    # Max open positions at once
-max_daily_loss_pct: 3%         # Circuit breaker: stops trading for the day
-max_drawdown_pct: 10%          # Circuit breaker: stops trading on drawdown
-mandatory_stop_loss: true      # Every order must have a stop-loss
+max_position_pct: 40%         # Max 40% of portfolio per trade
+max_total_exposure_pct: 90%   # Max 90% total exposure
+max_concurrent_positions: 6   # Max open positions at once
+max_daily_loss_pct: 3%        # Circuit breaker: stops trading for the day
+max_drawdown_pct: 10%         # Circuit breaker: stops trading on drawdown
+mandatory_stop_loss: true     # Every order must have a stop-loss
+trailing_stop: 3%             # Dynamic trailing stop (replaces fixed take-profit)
 ```
 
 ---
@@ -96,6 +123,9 @@ BINANCE_API_SECRET=your_api_secret
 # Web UI login
 WEB_USERNAME=your_username
 WEB_PASSWORD_HASH=your_sha256_hash
+
+# Auto-start bot on server boot
+AUTO_START=true
 ```
 
 Generate your password hash:
@@ -156,6 +186,8 @@ docker-compose up -d --build
 docker-compose logs -f
 ```
 
+With `AUTO_START=true` in `.env`, the bot starts trading automatically when the container starts. No manual intervention needed — survives reboots.
+
 ---
 
 ## Project Structure
@@ -163,14 +195,14 @@ docker-compose logs -f
 ```
 src/
   core/           Engine, EventBus, events, config loader
-  strategy/       Swing and Scalping strategies
+  strategy/       Swing (6-voter) and Scalping strategies
   ai/             Feature engineering, ML model, signal generation
   execution/      Order executor, paper executor, fill handler
-  risk/           Risk manager, circuit breaker, position sizer, portfolio tracker
-  data/           WebSocket feed, OHLCV aggregator, data store
+  risk/           Risk manager, circuit breaker, position sizer, trailing stop, portfolio tracker
+  data/           WebSocket feed, OHLCV aggregator, data store, market sentiment feed
   storage/        SQLAlchemy models, repository, DB init
   monitoring/     Health check, Telegram notifier
-  web/            FastAPI app, auth, templates, static files, WebSocket
+  web/            FastAPI app, auth, templates, static files, WebSocket, public dashboard
 config/           YAML settings and strategy configs
 scripts/          Entry points (run_web, run_bot, train_model)
 models/           Trained ML models (joblib)
@@ -181,12 +213,14 @@ tests/            Unit and integration tests
 
 ## Web Authentication
 
-The dashboard is protected with session-based authentication:
+The admin dashboard is protected with session-based authentication:
 
 - Credentials configured via `WEB_USERNAME` and `WEB_PASSWORD_HASH` environment variables
 - Password stored as SHA256 hash (never in plain text)
-- **1 attempt per IP** - a single failed login locks the IP for 24 hours
+- **1 attempt per IP** — a single failed login locks the IP for 24 hours
 - Session cookie with 7-day expiry
+
+The public dashboard at `/live` requires no authentication.
 
 ---
 
@@ -206,7 +240,7 @@ pairs:
     strategy: swing
 
 risk:
-  max_position_pct: 0.10
+  max_position_pct: 0.40
   max_daily_loss_pct: 0.03
   mandatory_stop_loss: true
 
