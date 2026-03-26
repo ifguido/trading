@@ -6,7 +6,7 @@ build/
 .eggs/
 *.egg
 .env
-data/
+/data/
 *.db
 .venv/
 venv/
