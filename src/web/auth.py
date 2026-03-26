@@ -75,7 +75,7 @@ LOGIN_PAGE = """
 <body class="h-full dark text-gray-100 flex items-center justify-center">
     <div class="bg-gray-900 border border-gray-800 rounded-lg p-8 w-full max-w-sm">
         <h1 class="text-xl font-bold text-center mb-6">CryptoTrader</h1>
-        {error}
+        <!-- ERROR_PLACEHOLDER -->
         <form method="POST" action="/login" class="space-y-4">
             <div>
                 <label class="block text-sm text-gray-400 mb-1">Username</label>
@@ -102,7 +102,7 @@ def _render_login(error: str = "") -> HTMLResponse:
     error_html = ""
     if error:
         error_html = f'<p class="text-red-400 text-sm text-center mb-4">{error}</p>'
-    return HTMLResponse(LOGIN_PAGE.format(error=error_html))
+    return HTMLResponse(LOGIN_PAGE.replace("<!-- ERROR_PLACEHOLDER -->", error_html))
 
 
 def setup_auth(app: Any) -> None:
