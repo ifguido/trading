@@ -159,8 +159,8 @@ def setup_auth(app: Any) -> None:
     async def auth_middleware(request: Request, call_next):
         path = request.url.path
 
-        # Allow public paths and static files
-        if path in _PUBLIC_PATHS or path.startswith("/static"):
+        # Allow public paths, static files, and public API
+        if path in _PUBLIC_PATHS or path.startswith("/static") or path == "/live" or path.startswith("/api/public"):
             return await call_next(request)
 
         # Check session cookie

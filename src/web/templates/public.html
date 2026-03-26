@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoTrader - Live Status</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { brand: { 500: '#6366f1', 600: '#4f46e5' } } } }
+        }
+    </script>
+    <style>
+        .pnl-positive { color: #4ade80; }
+        .pnl-negative { color: #f87171; }
+    </style>
+</head>
+<body class="h-full dark text-gray-100">
+    <nav class="bg-gray-900 border-b border-gray-800 px-4 py-3">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <span class="text-lg font-bold text-white tracking-tight">CryptoTrader</span>
+            <div class="flex items-center gap-3 text-sm">
+                <span id="status-dot" class="w-2.5 h-2.5 rounded-full bg-gray-600"></span>
+                <span id="status-text" class="text-gray-400">Loading...</span>
+                <span id="uptime-text" class="text-gray-500"></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-4 py-6">
+        <!-- Metrics -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Equity</p>
+                <p id="metric-equity" class="text-xl font-bold mt-1">--</p>
+            </div>
+            <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Realized PnL</p>
+                <p id="metric-realized" class="text-xl font-bold mt-1">--</p>
+            </div>
+            <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Unrealized PnL</p>
+                <p id="metric-unrealized" class="text-xl font-bold mt-1">--</p>
+            </div>
+            <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Positions</p>
+                <p id="metric-positions" class="text-xl font-bold mt-1">0</p>
+            </div>
+        </div>
+
+        <!-- Open Positions -->
+        <div class="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-6">
+            <h2 class="text-sm font-semibold text-gray-400 mb-3">Open Positions</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-gray-500 text-xs uppercase border-b border-gray-800">
+                            <th class="text-left py-2 px-2">Symbol</th>
+                            <th class="text-left py-2 px-2">Side</th>
+                            <th class="text-right py-2 px-2">Entry</th>
+                            <th class="text-right py-2 px-2">Current</th>
+                            <th class="text-right py-2 px-2">PnL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="positions-body">
+                        <tr><td colspan="5" class="text-gray-500 py-4 text-center">No positions</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Trades -->
+        <div class="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-6">
+            <h2 class="text-sm font-semibold text-gray-400 mb-3">Recent Trades</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-gray-500 text-xs uppercase border-b border-gray-800">
+                            <th class="text-left py-2 px-1">Symbol</th>
+                            <th class="text-left py-2 px-1">Side</th>
+                            <th class="text-right py-2 px-1">Qty</th>
+                            <th class="text-right py-2 px-1">Price</th>
+                            <th class="text-right py-2 px-1">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trades-body">
+                        <tr><td colspan="5" class="text-gray-500 py-4 text-center">No trades yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <p class="text-center text-gray-600 text-xs mt-8">
+            Powered by <a href="https://github.com" class="text-brand-500 hover:underline">CryptoTrader</a> — auto-refreshes every 60s
+        </p>
+    </main>
+
+    <script>
+        async function loadPublicData() {
+            try {
+                const [statusRes, portfolioRes, tradesRes] = await Promise.all([
+                    fetch('/api/public/status'),
+                    fetch('/api/public/portfolio'),
+                    fetch('/api/public/trades'),
+                ]);
+                const status = await statusRes.json();
+                const portfolio = await portfolioRes.json();
+                const trades = await tradesRes.json();
+
+                // Status
+                const dot = document.getElementById('status-dot');
+                const text = document.getElementById('status-text');
+                const uptime = document.getElementById('uptime-text');
+                if (text) text.textContent = status.state;
+                if (dot) {
+                    dot.className = 'w-2.5 h-2.5 rounded-full';
+                    if (status.state === 'RUNNING') dot.classList.add('bg-green-500');
+                    else if (status.state === 'ERROR') dot.classList.add('bg-red-500');
+                    else dot.classList.add('bg-gray-600');
+                }
+                if (uptime && status.uptime_seconds > 0) {
+                    const h = Math.floor(status.uptime_seconds / 3600);
+                    const m = Math.floor((status.uptime_seconds % 3600) / 60);
+                    uptime.textContent = h > 0 ? h + 'h ' + m + 'm' : m + 'm';
+                }
+
+                // Portfolio
+                const fmt = (v) => '$' + parseFloat(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const pnlClass = (v) => v >= 0 ? 'pnl-positive' : 'pnl-negative';
+                const eq = document.getElementById('metric-equity');
+                const rp = document.getElementById('metric-realized');
+                const up = document.getElementById('metric-unrealized');
+                const mp = document.getElementById('metric-positions');
+                if (eq) eq.textContent = fmt(portfolio.equity);
+                if (rp) { rp.textContent = fmt(portfolio.realized_pnl); rp.className = 'text-xl font-bold mt-1 ' + pnlClass(portfolio.realized_pnl); }
+                if (up) { up.textContent = fmt(portfolio.unrealized_pnl); up.className = 'text-xl font-bold mt-1 ' + pnlClass(portfolio.unrealized_pnl); }
+                if (mp) mp.textContent = portfolio.positions ? portfolio.positions.length : 0;
+
+                // Positions
+                const pbody = document.getElementById('positions-body');
+                if (pbody) {
+                    if (portfolio.positions && portfolio.positions.length) {
+                        pbody.innerHTML = portfolio.positions.map(p => `
+                            <tr class="border-b border-gray-800/50">
+                                <td class="py-2 px-2">${p.symbol}</td>
+                                <td class="py-2 px-2 ${p.side==='buy'?'text-green-400':'text-red-400'}">${p.side.toUpperCase()}</td>
+                                <td class="py-2 px-2 text-right">${parseFloat(p.entry_price).toFixed(2)}</td>
+                                <td class="py-2 px-2 text-right">${parseFloat(p.current_price).toFixed(2)}</td>
+                                <td class="py-2 px-2 text-right ${p.unrealized_pnl>=0?'pnl-positive':'pnl-negative'}">${parseFloat(p.unrealized_pnl).toFixed(2)}</td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        pbody.innerHTML = '<tr><td colspan="5" class="text-gray-500 py-4 text-center">No positions</td></tr>';
+                    }
+                }
+
+                // Trades
+                const tbody = document.getElementById('trades-body');
+                if (tbody) {
+                    if (trades && trades.length) {
+                        tbody.innerHTML = trades.map(t => `
+                            <tr class="border-b border-gray-800/50">
+                                <td class="py-1 px-1">${t.symbol}</td>
+                                <td class="py-1 px-1 ${t.side==='buy'?'text-green-400':'text-red-400'}">${t.side.toUpperCase()}</td>
+                                <td class="py-1 px-1 text-right">${t.quantity.toFixed(4)}</td>
+                                <td class="py-1 px-1 text-right">${t.price.toFixed(2)}</td>
+                                <td class="py-1 px-1 text-right text-gray-500">${new Date(t.executed_at).toLocaleTimeString()}</td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-gray-500 py-4 text-center">No trades yet</td></tr>';
+                    }
+                }
+            } catch (e) { console.error('Load error', e); }
+        }
+
+        loadPublicData();
+        setInterval(loadPublicData, 60000);
+    </script>
+</body>
+</html>
