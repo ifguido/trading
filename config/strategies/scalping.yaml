@@ -1,0 +1,12 @@
+# Scalping strategy configuration
+# Merged into settings at load time
+scalping:
+  order_book_depth: 5
+  imbalance_threshold: 1.5
+  spread_max_pct: 0.15
+  momentum_window: 50
+  momentum_threshold: 0.05
+  min_confidence: 0.5
+  cooldown_ms: 3000
+  stop_loss_pct: 0.5
+  take_profit_pct: 0.8

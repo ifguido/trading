@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Signals - CryptoTrader{% endblock %}
+{% block nav_signals %}text-brand-500 font-semibold{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Signal Log</h1>
+<div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="text-gray-500 text-xs uppercase border-b border-gray-800">
+                    <th class="text-left py-2 px-2">ID</th>
+                    <th class="text-left py-2 px-2">Symbol</th>
+                    <th class="text-left py-2 px-2">Direction</th>
+                    <th class="text-left py-2 px-2">Strategy</th>
+                    <th class="text-right py-2 px-2">Confidence</th>
+                    <th class="text-right py-2 px-2">Time</th>
+                </tr>
+            </thead>
+            <tbody id="full-signals-body">
+                <tr><td colspan="6" class="text-gray-500 py-8 text-center">No signals yet</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadFullSignals() {
+    try {
+        const res = await fetch('/api/signals?limit=200');
+        const signals = await res.json();
+        const tbody = document.getElementById('full-signals-body');
+        if (!signals.length) return;
+        const dirColors = {long:'text-green-400',short:'text-red-400',close:'text-yellow-400',hold:'text-gray-500'};
+        tbody.innerHTML = signals.map(s => `
+            <tr class="border-b border-gray-800/50 hover:bg-gray-800/30">
+                <td class="py-2 px-2 text-gray-500">${s.id}</td>
+                <td class="py-2 px-2">${s.symbol}</td>
+                <td class="py-2 px-2 ${dirColors[s.direction]||''}">${s.direction.toUpperCase()}</td>
+                <td class="py-2 px-2 text-gray-400">${s.strategy}</td>
+                <td class="py-2 px-2 text-right">${(s.confidence*100).toFixed(1)}%</td>
+                <td class="py-2 px-2 text-right text-gray-500">${new Date(s.created_at).toLocaleString()}</td>
+            </tr>
+        `).join('');
+    } catch(e) { console.error(e); }
+}
+loadFullSignals();
+setInterval(loadFullSignals, 10000);
+</script>
+{% endblock %}

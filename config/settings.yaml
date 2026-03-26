@@ -1,0 +1,45 @@
+exchange:
+  name: binance
+  mode: live
+  sandbox: false
+  rate_limit: true
+  options:
+    defaultType: spot
+pairs:
+- symbol: BTC/USDC
+  timeframes:
+  - 1m
+  - 5m
+  strategy: swing
+- symbol: ETH/USDC
+  timeframes:
+  - 1m
+  - 5m
+  strategy: swing
+- symbol: SOL/USDC
+  timeframes:
+  - 1m
+  - 5m
+  strategy: swing
+risk:
+  max_position_pct: 0.1
+  max_total_exposure_pct: 0.5
+  max_concurrent_positions: 6
+  max_daily_loss_pct: 0.03
+  max_drawdown_pct: 0.1
+  mandatory_stop_loss: true
+ai:
+  enabled: true
+  model_class: src.ai.local_model.LocalModel
+  config:
+    model_path: models/model.joblib
+    scaler_path: models/scaler.joblib
+    ai_weight: 1.5
+    confidence_threshold: 0.4
+telegram:
+  enabled: false
+storage:
+  url: ${DATABASE_URL}
+logging:
+  level: INFO
+  json_format: true

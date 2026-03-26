@@ -1,0 +1,30 @@
+{
+  "symbol": "BTC/USDT",
+  "timeframe": "1h",
+  "days": 365,
+  "horizon": 5,
+  "buy_threshold": 0.005,
+  "sell_threshold": -0.005,
+  "n_samples_train": 6980,
+  "n_samples_test": 1745,
+  "accuracy": 0.4343839541547278,
+  "feature_names": [
+    "return_1",
+    "return_5",
+    "return_15",
+    "return_30",
+    "rsi",
+    "macd",
+    "macd_signal",
+    "macd_histogram",
+    "bb_position",
+    "volume_ratio",
+    "volatility",
+    "ma_ratio",
+    "candle_range",
+    "hour",
+    "day_of_week"
+  ],
+  "n_features": 15,
+  "model_type": "GradientBoostingClassifier"
+}

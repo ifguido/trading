@@ -1,0 +1,44 @@
+[project]
+name = "cryptotrader"
+version = "0.1.0"
+description = "Automated crypto trading bot for Binance (spot)"
+requires-python = ">=3.10"
+dependencies = [
+    "ccxt>=4.0",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "sqlalchemy>=2.0",
+    "aiosqlite>=0.19",
+    "asyncpg>=0.29",
+    "orjson>=3.9",
+    "scikit-learn>=1.3",
+    "joblib>=1.3",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "jinja2>=3.1",
+    "python-multipart>=0.0.6",
+]
+
+[project.optional-dependencies]
+telegram = ["python-telegram-bot>=20.0"]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.0",
+    "ruff>=0.1",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - CryptoTrader{% endblock %}
+{% block nav_dashboard %}text-brand-500 font-semibold{% endblock %}
+
+{% block content %}
+<!-- Metric Cards -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <p class="text-xs text-gray-500 uppercase tracking-wide">Equity</p>
+        <p id="metric-equity" class="text-xl font-bold mt-1">$0.00</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <p class="text-xs text-gray-500 uppercase tracking-wide">Realized PnL</p>
+        <p id="metric-realized" class="text-xl font-bold mt-1">$0.00</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <p class="text-xs text-gray-500 uppercase tracking-wide">Unrealized PnL</p>
+        <p id="metric-unrealized" class="text-xl font-bold mt-1">$0.00</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <p class="text-xs text-gray-500 uppercase tracking-wide">Exposure</p>
+        <p id="metric-exposure" class="text-xl font-bold mt-1">$0.00</p>
+    </div>
+</div>
+
+<!-- Live Prices -->
+<div class="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-6">
+    <h2 class="text-sm font-semibold text-gray-400 mb-3">Live Prices</h2>
+    <div id="prices-grid" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <p class="text-gray-500 text-sm col-span-full">Waiting for data...</p>
+    </div>
+</div>
+
+<!-- Positions -->
+<div class="bg-gray-900 border border-gray-800 rounded-lg p-4 mb-6">
+    <h2 class="text-sm font-semibold text-gray-400 mb-3">Open Positions</h2>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="text-gray-500 text-xs uppercase border-b border-gray-800">
+                    <th class="text-left py-2 px-2">Symbol</th>
+                    <th class="text-left py-2 px-2">Side</th>
+                    <th class="text-right py-2 px-2">Qty</th>
+                    <th class="text-right py-2 px-2">Entry</th>
+                    <th class="text-right py-2 px-2">Current</th>
+                    <th class="text-right py-2 px-2">PnL</th>
+                </tr>
+            </thead>
+            <tbody id="positions-body">
+                <tr><td colspan="6" class="text-gray-500 py-4 text-center">No positions</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Recent Trades & Signals side by side -->
+<div class="grid md:grid-cols-2 gap-4">
+    <!-- Recent Trades -->
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <h2 class="text-sm font-semibold text-gray-400 mb-3">Recent Trades</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-gray-500 text-xs uppercase border-b border-gray-800">
+                        <th class="text-left py-2 px-1">Symbol</th>
+                        <th class="text-left py-2 px-1">Side</th>
+                        <th class="text-right py-2 px-1">Qty</th>
+                        <th class="text-right py-2 px-1">Price</th>
+                        <th class="text-right py-2 px-1">Time</th>
+                    </tr>
+                </thead>
+                <tbody id="trades-body">
+                    <tr><td colspan="5" class="text-gray-500 py-4 text-center">No trades</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Signals -->
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <h2 class="text-sm font-semibold text-gray-400 mb-3">Recent Signals</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-gray-500 text-xs uppercase border-b border-gray-800">
+                        <th class="text-left py-2 px-1">Symbol</th>
+                        <th class="text-left py-2 px-1">Direction</th>
+                        <th class="text-left py-2 px-1">Strategy</th>
+                        <th class="text-right py-2 px-1">Confidence</th>
+                        <th class="text-right py-2 px-1">Time</th>
+                    </tr>
+                </thead>
+                <tbody id="signals-body">
+                    <tr><td colspan="5" class="text-gray-500 py-4 text-center">No signals</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    startDashboardPolling();
+</script>
+{% endblock %}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CryptoTrader{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 500: '#6366f1', 600: '#4f46e5' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full dark text-gray-100">
+    <!-- Nav -->
+    <nav class="bg-gray-900 border-b border-gray-800 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <span class="text-lg font-bold text-white tracking-tight">CryptoTrader</span>
+                <div class="flex gap-4 text-sm">
+                    <a href="/" class="hover:text-brand-500 {% block nav_dashboard %}{% endblock %}">Dashboard</a>
+                    <a href="/setup" class="hover:text-brand-500 {% block nav_setup %}{% endblock %}">Setup</a>
+                    <a href="/trades" class="hover:text-brand-500 {% block nav_trades %}{% endblock %}">Trades</a>
+                    <a href="/signals" class="hover:text-brand-500 {% block nav_signals %}{% endblock %}">Signals</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 text-sm">
+                <span id="status-dot" class="w-2.5 h-2.5 rounded-full bg-gray-600"></span>
+                <span id="status-text" class="text-gray-400">IDLE</span>
+                <span id="uptime-text" class="text-gray-500 hidden"></span>
+                <button id="btn-toggle" onclick="toggleBot()"
+                    class="ml-3 px-3 py-1 rounded text-xs font-medium bg-brand-600 hover:bg-brand-500 text-white transition">
+                    Start Bot
+                </button>
+                <a href="/logout" class="ml-2 px-2 py-1 rounded text-xs text-gray-500 hover:text-gray-300 transition">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="/static/app.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

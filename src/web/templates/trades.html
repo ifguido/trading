@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Trades - CryptoTrader{% endblock %}
+{% block nav_trades %}text-brand-500 font-semibold{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Trade History</h1>
+<div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="text-gray-500 text-xs uppercase border-b border-gray-800">
+                    <th class="text-left py-2 px-2">ID</th>
+                    <th class="text-left py-2 px-2">Symbol</th>
+                    <th class="text-left py-2 px-2">Side</th>
+                    <th class="text-right py-2 px-2">Qty</th>
+                    <th class="text-right py-2 px-2">Price</th>
+                    <th class="text-right py-2 px-2">Fee</th>
+                    <th class="text-left py-2 px-2">Strategy</th>
+                    <th class="text-right py-2 px-2">Time</th>
+                </tr>
+            </thead>
+            <tbody id="full-trades-body">
+                <tr><td colspan="8" class="text-gray-500 py-8 text-center">No trades yet</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadFullTrades() {
+    try {
+        const res = await fetch('/api/trades?limit=200');
+        const trades = await res.json();
+        const tbody = document.getElementById('full-trades-body');
+        if (!trades.length) return;
+        tbody.innerHTML = trades.map(t => `
+            <tr class="border-b border-gray-800/50 hover:bg-gray-800/30">
+                <td class="py-2 px-2 text-gray-500">${t.id}</td>
+                <td class="py-2 px-2">${t.symbol}</td>
+                <td class="py-2 px-2 ${t.side==='buy'?'text-green-400':'text-red-400'}">${t.side.toUpperCase()}</td>
+                <td class="py-2 px-2 text-right">${t.quantity.toFixed(6)}</td>
+                <td class="py-2 px-2 text-right">${t.price.toFixed(2)}</td>
+                <td class="py-2 px-2 text-right text-gray-500">${t.fee.toFixed(4)}</td>
+                <td class="py-2 px-2 text-gray-400">${t.strategy}</td>
+                <td class="py-2 px-2 text-right text-gray-500">${new Date(t.executed_at).toLocaleString()}</td>
+            </tr>
+        `).join('');
+    } catch(e) { console.error(e); }
+}
+loadFullTrades();
+setInterval(loadFullTrades, 10000);
+</script>
+{% endblock %}

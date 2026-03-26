@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  cryptotrader:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data          # SQLite DB persiste en host
+      - ./config:/app/config      # Config editable desde host
+      - ./.env:/app/.env          # API keys
+      - ./models:/app/models      # AI models
+    env_file:
+      - .env
+    restart: unless-stopped

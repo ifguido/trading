@@ -1,0 +1,17 @@
+# Swing strategy configuration
+# Merged into settings at load time
+swing:
+  fast_ma: 10
+  slow_ma: 30
+  rsi_period: 14
+  rsi_overbought: 70
+  rsi_oversold: 30
+  macd_fast: 12
+  macd_slow: 26
+  macd_signal: 9
+  bb_period: 20
+  bb_std: 2.0
+  min_candles: 50
+  min_confidence: 0.4
+  stop_loss_pct: 2.0
+  take_profit_pct: 4.0

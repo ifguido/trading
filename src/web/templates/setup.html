@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Setup - CryptoTrader{% endblock %}
+{% block nav_setup %}text-brand-500 font-semibold{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-2xl font-bold mb-6">Bot Configuration</h1>
+
+    <form id="setup-form" onsubmit="saveConfig(event)" class="space-y-6">
+        <!-- API Keys -->
+        <div class="bg-gray-900 border border-gray-800 rounded-lg p-5 space-y-4">
+            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Binance API Keys</h2>
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">
+                    API Key
+                    <span id="key-indicator" class="ml-2 text-xs"></span>
+                </label>
+                <input type="password" id="api-key" placeholder="Enter API key..."
+                    class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-brand-500">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">
+                    API Secret
+                    <span id="secret-indicator" class="ml-2 text-xs"></span>
+                </label>
+                <input type="password" id="api-secret" placeholder="Enter API secret..."
+                    class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-brand-500">
+            </div>
+        </div>
+
+        <!-- Mode -->
+        <div class="bg-gray-900 border border-gray-800 rounded-lg p-5 space-y-3">
+            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Trading Mode</h2>
+            <div class="flex gap-6">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="mode" value="paper" checked
+                        class="text-brand-500 focus:ring-brand-500 bg-gray-800 border-gray-600">
+                    <span class="text-sm">Paper</span>
+                    <span class="text-xs text-gray-500">Simulated</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="mode" value="sandbox"
+                        class="text-brand-500 focus:ring-brand-500 bg-gray-800 border-gray-600">
+                    <span class="text-sm">Sandbox</span>
+                    <span class="text-xs text-gray-500">Testnet</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="mode" value="live"
+                        class="text-brand-500 focus:ring-brand-500 bg-gray-800 border-gray-600">
+                    <span class="text-sm">Live</span>
+                    <span class="text-xs text-yellow-500">Real money</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Capital -->
+        <div class="bg-gray-900 border border-gray-800 rounded-lg p-5 space-y-3">
+            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Initial Capital</h2>
+            <div class="flex items-center gap-2">
+                <input type="number" id="capital" value="10000" min="100" step="100"
+                    class="w-40 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-brand-500">
+                <span class="text-sm text-gray-500">USDC</span>
+            </div>
+        </div>
+
+        <!-- Trading Pairs -->
+        <div class="bg-gray-900 border border-gray-800 rounded-lg p-5 space-y-3">
+            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wide">Trading Pairs</h2>
+            <div id="pairs-grid" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" value="BTC/USDC" checked class="pair-cb rounded bg-gray-800 border-gray-600 text-brand-500 focus:ring-brand-500">
+                    <span class="text-sm">BTC/USDC</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" value="ETH/USDC" checked class="pair-cb rounded bg-gray-800 border-gray-600 text-brand-500 focus:ring-brand-500">
+                    <span class="text-sm">ETH/USDC</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" value="SOL/USDC" class="pair-cb rounded bg-gray-800 border-gray-600 text-brand-500 focus:ring-brand-500">
+                    <span class="text-sm">SOL/USDC</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" value="BNB/USDC" class="pair-cb rounded bg-gray-800 border-gray-600 text-brand-500 focus:ring-brand-500">
+                    <span class="text-sm">BNB/USDC</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" value="XRP/USDC" class="pair-cb rounded bg-gray-800 border-gray-600 text-brand-500 focus:ring-brand-500">
+                    <span class="text-sm">XRP/USDC</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" value="ADA/USDC" class="pair-cb rounded bg-gray-800 border-gray-600 text-brand-500 focus:ring-brand-500">
+                    <span class="text-sm">ADA/USDC</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" value="AVAX/USDC" class="pair-cb rounded bg-gray-800 border-gray-600 text-brand-500 focus:ring-brand-500">
+                    <span class="text-sm">AVAX/USDC</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" value="DOGE/USDC" class="pair-cb rounded bg-gray-800 border-gray-600 text-brand-500 focus:ring-brand-500">
+                    <span class="text-sm">DOGE/USDC</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Save -->
+        <div class="flex items-center gap-4">
+            <button type="submit" id="btn-save"
+                class="px-6 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded font-medium text-sm transition">
+                Save Configuration
+            </button>
+            <span id="save-status" class="text-sm"></span>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Load current config on page load
+    loadSetupConfig();
+</script>
+{% endblock %}
