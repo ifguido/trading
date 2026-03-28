@@ -126,8 +126,12 @@ class RiskManager:
             return
 
         # -- Construir y publicar el OrderEvent -----------------------------
-        # Convertir la direccion de la senal al lado correspondiente de la orden
-        side = Side.BUY if direction == SignalDirection.LONG else Side.SELL
+        # En spot solo se permite LONG (comprar). SHORT no es posible.
+        if direction == SignalDirection.SHORT:
+            logger.warning("Signal REJECTED for %s: SHORT not allowed in spot mode", symbol)
+            return
+
+        side = Side.BUY
         order = OrderEvent(
             symbol=symbol,
             side=side,

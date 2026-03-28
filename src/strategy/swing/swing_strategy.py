@@ -47,7 +47,7 @@ _DEFAULT_BB_STD = 2.0  # Multiplicador de desviacion estandar para Bollinger
 _DEFAULT_MIN_CANDLES = 15  # Velas minimas antes de generar señales
 _DEFAULT_STOP_LOSS_PCT = Decimal("0.02")  # Porcentaje de stop loss (2%)
 _DEFAULT_TAKE_PROFIT_PCT = Decimal("0.04")  # Porcentaje de toma de ganancias (4%)
-_DEFAULT_MIN_CONFIDENCE = 0.4  # Confianza minima para emitir señal
+_DEFAULT_MIN_CONFIDENCE = 0.25  # Confianza minima para emitir señal
 
 
 class SwingStrategy(BaseStrategy):
@@ -183,6 +183,9 @@ class SwingStrategy(BaseStrategy):
         event:
             Evento de vela OHLCV entrante.
         """
+        # Solo evaluar en timeframe de 1 minuto para evitar duplicados
+        if event.timeframe != "1m":
+            return
         # Ignorar simbolos que no pertenecen a esta estrategia
         if event.symbol not in self._symbols:
             return
@@ -549,12 +552,14 @@ class SwingStrategy(BaseStrategy):
             return
 
         # Determinar direccion basada en el score neto
+        # En spot trading solo se puede ir LONG o CLOSE (no se puede shortear)
         if net_score > 0:
-            direction = SignalDirection.LONG  # Señal de compra
+            direction = SignalDirection.LONG
         elif net_score < 0:
-            direction = SignalDirection.SHORT  # Señal de venta
+            # Bearish en spot = cerrar posición si existe, no shortear
+            direction = SignalDirection.CLOSE
         else:
-            return  # Score neutro, no emitir señal
+            return
 
         # No emitir si la direccion no cambio (evitar duplicados)
         if self._last_signal.get(symbol) == direction:
