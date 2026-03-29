@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Auto-Tuner - CryptoTrader{% endblock %}
+{% block nav_tuning %}text-brand-500 font-semibold{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-lg font-bold mb-1">Auto-Tuner Log</h1>
+    <p class="text-sm text-gray-500">The AI auto-tuner analyzes performance every 6 hours and adjusts parameters within safe bounds.</p>
+</div>
+
+<div id="tuning-logs" class="space-y-4">
+    <p class="text-gray-500 text-sm">Loading...</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadTuningLogs() {
+    try {
+        const res = await fetch('/api/tuning');
+        const logs = await res.json();
+        const container = document.getElementById('tuning-logs');
+
+        if (!logs.length) {
+            container.innerHTML = '<p class="text-gray-500 text-sm">No tuning logs yet. The first analysis runs ~1 minute after bot start.</p>';
+            return;
+        }
+
+        container.innerHTML = logs.map(log => {
+            const m = log.metrics;
+            const before = log.parameters_before;
+            const after = log.parameters_after;
+            const changed = JSON.stringify(before) !== JSON.stringify(after);
+            const dt = new Date(log.created_at).toLocaleString();
+
+            const paramRows = Object.keys(before).map(k => {
+                const b = typeof before[k] === 'number' ? before[k].toFixed(3) : before[k];
+                const a = typeof after[k] === 'number' ? after[k].toFixed(3) : after[k];
+                const diff = b !== a;
+                return `<tr class="border-b border-gray-800/30">
+                    <td class="py-1 px-2 text-gray-400">${k}</td>
+                    <td class="py-1 px-2 text-right">${b}</td>
+                    <td class="py-1 px-2 text-right ${diff ? 'text-yellow-400 font-bold' : ''}">${a}${diff ? ' *' : ''}</td>
+                </tr>`;
+            }).join('');
+
+            return `
+            <div class="bg-gray-900 border border-gray-800 rounded-lg p-4">
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <span class="inline-block px-2 py-0.5 rounded text-xs font-medium ${changed ? 'bg-yellow-600/20 text-yellow-400' : 'bg-gray-700 text-gray-400'}">
+                            ${changed ? 'ADJUSTED' : 'NO CHANGE'}
+                        </span>
+                        <span class="text-xs text-gray-500 ml-2">${dt}</span>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-300 mb-3">${log.summary}</p>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase mb-1">Performance</p>
+                        <div class="text-sm space-y-1">
+                            <p>Trades: <span class="text-white font-mono">${m.total_trades}</span></p>
+                            <p>Rounds: <span class="text-white font-mono">${m.completed_rounds}</span></p>
+                            <p>Win Rate: <span class="text-white font-mono">${(m.win_rate * 100).toFixed(0)}%</span></p>
+                            <p>Total PnL: <span class="font-mono ${m.total_pnl >= 0 ? 'text-green-400' : 'text-red-400'}">$${m.total_pnl.toFixed(2)}</span></p>
+                            <p>Avg Win: <span class="text-green-400 font-mono">$${m.avg_win.toFixed(2)}</span></p>
+                            <p>Avg Loss: <span class="text-red-400 font-mono">$${m.avg_loss.toFixed(2)}</span></p>
+                            <p>Hours since trade: <span class="text-white font-mono">${m.hours_since_last_trade.toFixed(1)}h</span></p>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase mb-1">Parameters</p>
+                        <table class="w-full text-sm">
+                            <thead><tr class="text-gray-500 text-xs">
+                                <th class="text-left py-1 px-2">Param</th>
+                                <th class="text-right py-1 px-2">Before</th>
+                                <th class="text-right py-1 px-2">After</th>
+                            </tr></thead>
+                            <tbody>${paramRows}</tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    } catch (e) { console.error(e); }
+}
+
+loadTuningLogs();
+setInterval(loadTuningLogs, 60000);
+</script>
+{% endblock %}

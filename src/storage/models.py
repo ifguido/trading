@@ -335,3 +335,21 @@ class SignalLog(Base):
             f"<SignalLog id={self.id} {self.direction} {self.symbol} "
             f"strategy={self.strategy_name} confidence={self.confidence}>"
         )
+
+
+# ── TuningLog (Registro de Auto-Tuning) ──────────────────────────
+
+
+class TuningLog(Base):
+    """Registro de cada ajuste automatico realizado por el AutoTuner."""
+
+    __tablename__ = "tuning_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    summary: Mapped[str] = mapped_column(Text, nullable=False)
+    parameters_before: Mapped[str] = mapped_column(Text, nullable=False)
+    parameters_after: Mapped[str] = mapped_column(Text, nullable=False)
+    metrics: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=_utcnow
+    )

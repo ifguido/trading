@@ -625,7 +625,16 @@ class Engine:
             ai_model=self._ai_model,
             ws_feed=self._ws_feed,
         )
-        logger.info("Monitoring initialized")
+        # Auto-tuner: analiza rendimiento y ajusta parametros cada 6 horas
+        from src.risk.auto_tuner import AutoTuner
+        self._auto_tuner = AutoTuner(
+            engine=self,
+            db_path="data/cryptotrader.db",
+            interval_hours=6,
+        )
+        await self._auto_tuner.start()
+
+        logger.info("Monitoring initialized (including auto-tuner)")
 
 
 async def run(config_path: str = "config/settings.yaml") -> None:

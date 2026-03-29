@@ -14,7 +14,7 @@ from fastapi.templating import Jinja2Templates
 logger = logging.getLogger(__name__)
 
 from .auth import setup_auth
-from .routers import bot, config, portfolio, public, signals, trades
+from .routers import bot, config, portfolio, public, signals, trades, tuning
 from .ws import router as ws_router
 
 _HERE = Path(__file__).resolve().parent
@@ -43,6 +43,7 @@ def create_app() -> FastAPI:
     app.include_router(signals.router)
     app.include_router(ws_router)
     app.include_router(public.router)
+    app.include_router(tuning.router)
 
     # HTML page routes
     @app.get("/")
@@ -60,6 +61,10 @@ def create_app() -> FastAPI:
     @app.get("/signals")
     async def signals_page(request: Request):
         return templates.TemplateResponse(request, "signals.html")
+
+    @app.get("/tuning")
+    async def tuning_page(request: Request):
+        return templates.TemplateResponse(request, "tuning.html")
 
     @app.get("/live")
     async def public_page(request: Request):
