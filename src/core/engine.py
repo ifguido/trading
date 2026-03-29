@@ -394,6 +394,7 @@ class Engine:
                 quote_currency = parts[1]
 
         # Obtener equity inicial del balance del exchange
+        balance: dict = {}
         if self._exchange is not None:
             balance = await self._exchange.fetch_balance()
             logger.info("Exchange balance for %s: %s", quote_currency, balance.get(quote_currency))
@@ -411,16 +412,45 @@ class Engine:
             initial_equity=initial_equity,
         )
 
+        # Reconciliar posiciones abiertas: si hay base currencies en Binance,
+        # agregarlas como posiciones al portfolio tracker para que el equity sea correcto.
+        if self._exchange is not None and balance:
+            from src.core.events import Side
+            for pair in self.config.pairs:
+                parts = pair.symbol.split("/")
+                if len(parts) != 2:
+                    continue
+                base = parts[0]
+                base_total = (balance.get(base) or {}).get("total") or 0
+                base_qty = Decimal(str(base_total))
+                if base_qty < Decimal("0.00001"):
+                    continue
+                try:
+                    ticker = await self._exchange.fetch_ticker(pair.symbol)
+                    price = Decimal(str(ticker["last"]))
+                except Exception:
+                    logger.warning("Reconciliation: could not fetch ticker for %s", pair.symbol)
+                    continue
+                position_value = base_qty * price
+                self._portfolio_tracker.add_position(pair.symbol, Side.BUY, base_qty, price)
+                # Sumar el valor de la posicion al equity inicial para que el total sea correcto
+                self._portfolio_tracker._initial_equity += position_value
+                # Registrar en trailing stop para proteger la posicion existente
+                logger.info(
+                    "Reconciled open position: %s qty=%s @ %s = %s %s",
+                    pair.symbol, base_qty, price, position_value, quote_currency,
+                )
+
         # Calculador de tamano de posicion basado en porcentaje del portafolio
         self._position_sizer = PositionSizer(
             max_position_pct=self.config.risk.max_position_pct,
         )
 
-        # Circuit breaker: detiene todo el trading si se exceden limites criticos
+        # Circuit breaker: usa el equity total (incluyendo posiciones reconciliadas)
         self._circuit_breaker = CircuitBreaker(
             event_bus=self.event_bus,
             config=self.config.risk,
-            initial_equity=initial_equity,
+            initial_equity=self._portfolio_tracker._initial_equity,
         )
 
         # Risk manager: evalua cada senal contra todas las reglas de riesgo
@@ -438,6 +468,13 @@ class Engine:
             event_bus=self.event_bus,
             trailing_pct=Decimal("0.03"),
         )
+
+        # Registrar en trailing stop las posiciones reconciliadas al inicio
+        for symbol, pos in self._portfolio_tracker.positions.items():
+            from src.core.events import Side as _Side
+            if pos.side == _Side.BUY:
+                self._trailing_stop.track(symbol, "BUY", pos.entry_price)
+                logger.info("Trailing stop tracking reconciled position: %s @ %s", symbol, pos.entry_price)
 
         # Conectar fills al trailing stop para trackear nuevas posiciones
         from src.core.events import FillEvent
