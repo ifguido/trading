@@ -34,8 +34,8 @@ logger = logging.getLogger(__name__)
 
 # ── Parametros por defecto ────────────────────────────────────────────
 
-_DEFAULT_FAST_MA = 10  # Periodo de la media movil rapida
-_DEFAULT_SLOW_MA = 30  # Periodo de la media movil lenta
+_DEFAULT_FAST_MA = 7  # Periodo de la media movil rapida (agresivo: reacciona antes)
+_DEFAULT_SLOW_MA = 21  # Periodo de la media movil lenta (agresivo: reacciona antes)
 _DEFAULT_RSI_PERIOD = 14  # Periodo de calculo del RSI
 _DEFAULT_RSI_OVERBOUGHT = 70  # Umbral de sobrecompra del RSI
 _DEFAULT_RSI_OVERSOLD = 30  # Umbral de sobreventa del RSI
@@ -97,8 +97,12 @@ class SwingStrategy(BaseStrategy):
         params: dict[str, Any] | None = None,
         ai_model: Any | None = None,
         feature_pipeline: Any | None = None,
+        symbol_overrides: dict[str, dict[str, Any]] | None = None,
     ) -> None:
         super().__init__(name, symbols, event_bus, params, ai_model, feature_pipeline)
+
+        # Overrides por simbolo (ej. min_confidence por par)
+        self._symbol_overrides: dict[str, dict[str, Any]] = symbol_overrides or {}
 
         # Parametros de indicadores tecnicos extraidos de la configuracion
         self._fast_ma: int = self._params.get("fast_ma", _DEFAULT_FAST_MA)
@@ -548,7 +552,8 @@ class SwingStrategy(BaseStrategy):
         )
 
         # Si la confianza no alcanza el minimo, no emitir señal
-        if confidence < self._min_confidence:
+        min_conf = self._symbol_overrides.get(symbol, {}).get("min_confidence", self._min_confidence)
+        if confidence < min_conf:
             return
 
         # Determinar direccion basada en el score neto

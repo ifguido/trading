@@ -442,8 +442,13 @@ class Engine:
                 )
 
         # Calculador de tamano de posicion basado en porcentaje del portafolio
+        position_overrides: dict[str, Decimal] = {}
+        for pair in self.config.pairs:
+            if pair.max_position_pct is not None:
+                position_overrides[pair.symbol] = pair.max_position_pct
         self._position_sizer = PositionSizer(
             max_position_pct=self.config.risk.max_position_pct,
+            pair_overrides=position_overrides,
         )
 
         # Circuit breaker: usa el equity total (incluyendo posiciones reconciliadas)
@@ -463,17 +468,23 @@ class Engine:
         )
 
         # Trailing stop: reemplaza take-profit fijo con trailing dinámico (3%)
+        # Construir overrides por par desde la config
+        trailing_overrides: dict[str, Decimal] = {}
+        for pair in self.config.pairs:
+            if pair.trailing_pct is not None:
+                trailing_overrides[pair.symbol] = pair.trailing_pct
         from src.risk.trailing_stop import TrailingStopManager
         self._trailing_stop = TrailingStopManager(
             event_bus=self.event_bus,
             trailing_pct=Decimal("0.03"),
+            pair_overrides=trailing_overrides,
         )
 
         # Registrar en trailing stop las posiciones reconciliadas al inicio
         for symbol, pos in self._portfolio_tracker.positions.items():
             from src.core.events import Side as _Side
             if pos.side == _Side.BUY:
-                self._trailing_stop.track(symbol, "BUY", pos.entry_price)
+                self._trailing_stop.track(symbol, pos.side.value, pos.entry_price)
                 logger.info("Trailing stop tracking reconciled position: %s @ %s", symbol, pos.entry_price)
 
         # Conectar fills al trailing stop para trackear nuevas posiciones

@@ -40,19 +40,27 @@ class TrailingStopManager:
         Trailing distance as a fraction (e.g. 0.03 = 3%).
     """
 
-    def __init__(self, event_bus: EventBus, trailing_pct: Decimal = Decimal("0.03")) -> None:
+    def __init__(
+        self,
+        event_bus: EventBus,
+        trailing_pct: Decimal = Decimal("0.03"),
+        pair_overrides: dict[str, Decimal] | None = None,
+    ) -> None:
         self._bus = event_bus
         self._trailing_pct = trailing_pct
+        self._pair_overrides = pair_overrides or {}
         self._positions: dict[str, TrailingState] = {}
 
         self._bus.subscribe(TickEvent, self._on_tick, name="TrailingStop.tick")
 
     def track(self, symbol: str, side: str, entry_price: Decimal) -> None:
         """Start tracking a new position with trailing stop."""
+        side = side.lower()  # normalizar: "BUY"/"SELL" -> "buy"/"sell"
+        pct = self._pair_overrides.get(symbol, self._trailing_pct)
         if side == "buy":
-            stop = entry_price * (Decimal(1) - self._trailing_pct)
+            stop = entry_price * (Decimal(1) - pct)
         else:
-            stop = entry_price * (Decimal(1) + self._trailing_pct)
+            stop = entry_price * (Decimal(1) + pct)
 
         self._positions[symbol] = TrailingState(
             symbol=symbol,
@@ -60,7 +68,7 @@ class TrailingStopManager:
             entry_price=entry_price,
             peak_price=entry_price,
             trailing_stop=stop,
-            trailing_pct=self._trailing_pct,
+            trailing_pct=pct,
         )
         logger.info(
             "Trailing stop started for %s: entry=%s stop=%s (%.1f%%)",

@@ -58,15 +58,29 @@ class PairConfig(BaseModel):
     """Configuracion de un par de trading individual.
 
     Cada par define que simbolo operar, en que timeframes y con que estrategia.
+    Los campos opcionales permiten sobrecargar parametros globales por par.
 
     Atributos:
         symbol: Par de trading (ej. "BTC/USDT").
         timeframes: Lista de intervalos temporales a monitorear.
         strategy: Nombre de la estrategia a usar para este par.
+        trailing_pct: Override del trailing stop para este par (fraccion, ej. 0.015 = 1.5%).
+        max_position_pct: Override del tamano maximo de posicion para este par.
+        min_confidence: Override de la confianza minima para emitir senal para este par.
     """
     symbol: str                                                     # Par de trading (obligatorio)
     timeframes: list[str] = Field(default_factory=lambda: ["1m", "5m"])  # Timeframes a monitorear
     strategy: str = "swing"                                         # Estrategia asignada al par
+    trailing_pct: Decimal | None = None                             # Override trailing stop por par
+    max_position_pct: Decimal | None = None                         # Override tamano posicion por par
+    min_confidence: float | None = None                             # Override confianza minima por par
+
+    @field_validator("trailing_pct", "max_position_pct", mode="before")
+    @classmethod
+    def coerce_decimal(cls, v: Any, info: Any) -> Any:
+        if v is not None and isinstance(v, (int, float)):
+            return Decimal(str(v))
+        return v
 
 
 class RiskConfig(BaseModel):

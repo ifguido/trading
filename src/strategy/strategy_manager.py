@@ -176,8 +176,17 @@ class StrategyManager:
             # Generar nombre unico combinando tipo y simbolos
             name = f"{strategy_type}_{'-'.join(s.replace('/', '_') for s in symbols)}"
 
+            # Construir overrides por simbolo desde PairConfig
+            symbol_overrides: dict[str, dict[str, Any]] = {}
+            for p in pairs:
+                overrides: dict[str, Any] = {}
+                if p.min_confidence is not None:
+                    overrides["min_confidence"] = p.min_confidence
+                if overrides:
+                    symbol_overrides[p.symbol] = overrides
+
             # Crear instancia de la estrategia con todos los parametros
-            strategy = cls(
+            kwargs: dict[str, Any] = dict(
                 name=name,
                 symbols=symbols,
                 event_bus=self._event_bus,
@@ -185,6 +194,9 @@ class StrategyManager:
                 ai_model=self._ai_model,
                 feature_pipeline=self._feature_pipeline,
             )
+            if symbol_overrides:
+                kwargs["symbol_overrides"] = symbol_overrides
+            strategy = cls(**kwargs)
             self._strategies.append(strategy)
 
             # Construir indice de busqueda rapida simbolo -> estrategia

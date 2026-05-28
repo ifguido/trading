@@ -48,10 +48,12 @@ class PositionSizer:
         mode: SizingMode = SizingMode.FIXED_FRACTION,
         max_position_pct: Decimal = Decimal("0.10"),
         min_order_size: Decimal = Decimal("0.00001"),
+        pair_overrides: dict[str, Decimal] | None = None,
     ) -> None:
         self._mode = mode  # Modo de calculo seleccionado
         self._max_position_pct = max_position_pct  # Limite maximo por posicion (fraccion del capital)
         self._min_order_size = min_order_size  # Tamano minimo de orden aceptable
+        self._pair_overrides = pair_overrides or {}  # Overrides por par
 
     # -- API Publica --------------------------------------------------------
 
@@ -64,6 +66,7 @@ class PositionSizer:
         volatility: Decimal | None = None,
         win_rate: Decimal | None = None,
         payoff_ratio: Decimal | None = None,
+        symbol: str | None = None,
     ) -> Decimal:
         """Calcula y retorna el tamano de posicion en unidades del activo base.
 
@@ -115,7 +118,8 @@ class PositionSizer:
             return Decimal(0)
 
         # Imponer limite maximo por posicion (como fraccion del capital total)
-        max_qty = (equity * self._max_position_pct) / entry_price
+        max_pct = self._pair_overrides.get(symbol, self._max_position_pct) if symbol else self._max_position_pct
+        max_qty = (equity * max_pct) / entry_price
         qty = min(qty, max_qty)
 
         # Redondear hacia abajo a 8 decimales y aplicar filtro de tamano minimo

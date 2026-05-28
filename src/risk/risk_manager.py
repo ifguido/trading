@@ -118,6 +118,7 @@ class RiskManager:
             risk_per_trade=self._cfg.max_daily_loss_pct,  # Presupuesto de riesgo por operacion
             entry_price=entry_price,
             stop_distance=stop_distance,
+            symbol=symbol,
         )
 
         # Rechazar si la cantidad calculada es cero o negativa

@@ -11,22 +11,33 @@ pairs:
   - 1m
   - 5m
   strategy: swing
+  min_confidence: 0.12
 - symbol: ETH/USDC
   timeframes:
   - 1m
   - 5m
   strategy: swing
+  min_confidence: 0.12
 - symbol: SOL/USDC
   timeframes:
   - 1m
   - 5m
   strategy: swing
+  min_confidence: 0.12
+- symbol: PEPE/USDC
+  timeframes:
+  - 1m
+  - 5m
+  strategy: swing
+  trailing_pct: 0.015
+  max_position_pct: 0.25
+  min_confidence: 0.12
 risk:
-  max_position_pct: 0.4
-  max_total_exposure_pct: 0.9
+  max_position_pct: 0.8
+  max_total_exposure_pct: 1.0
   max_concurrent_positions: 6
-  max_daily_loss_pct: 0.03
-  max_drawdown_pct: 0.1
+  max_daily_loss_pct: 0.06
+  max_drawdown_pct: 0.18
   mandatory_stop_loss: true
 ai:
   enabled: true
