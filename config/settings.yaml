@@ -10,24 +10,72 @@ pairs:
   timeframes:
   - 1m
   - 5m
+  - 15m
+  - 1h
   strategy: swing
   min_confidence: 0.12
 - symbol: ETH/USDC
   timeframes:
   - 1m
   - 5m
+  - 15m
+  - 1h
   strategy: swing
   min_confidence: 0.12
 - symbol: SOL/USDC
   timeframes:
   - 1m
   - 5m
+  - 15m
+  - 1h
+  strategy: swing
+  min_confidence: 0.12
+- symbol: BNB/USDC
+  timeframes:
+  - 1m
+  - 5m
+  - 15m
+  - 1h
+  strategy: swing
+  min_confidence: 0.12
+- symbol: XRP/USDC
+  timeframes:
+  - 1m
+  - 5m
+  - 15m
+  - 1h
+  strategy: swing
+  min_confidence: 0.12
+- symbol: ADA/USDC
+  timeframes:
+  - 1m
+  - 5m
+  - 15m
+  - 1h
+  strategy: swing
+  min_confidence: 0.12
+- symbol: AVAX/USDC
+  timeframes:
+  - 1m
+  - 5m
+  - 15m
+  - 1h
+  strategy: swing
+  min_confidence: 0.12
+- symbol: DOGE/USDC
+  timeframes:
+  - 1m
+  - 5m
+  - 15m
+  - 1h
   strategy: swing
   min_confidence: 0.12
 - symbol: PEPE/USDC
   timeframes:
   - 1m
   - 5m
+  - 15m
+  - 1h
   strategy: swing
   trailing_pct: 0.015
   max_position_pct: 0.25
