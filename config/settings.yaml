@@ -7,78 +7,84 @@ exchange:
     defaultType: spot
 pairs:
 - symbol: BTC/USDC
-  timeframes:
-  - 1m
-  - 5m
-  - 15m
-  - 1h
+  timeframes: [1m, 5m]
   strategy: swing
   min_confidence: 0.12
 - symbol: ETH/USDC
-  timeframes:
-  - 1m
-  - 5m
-  - 15m
-  - 1h
+  timeframes: [1m, 5m]
   strategy: swing
   min_confidence: 0.12
 - symbol: SOL/USDC
-  timeframes:
-  - 1m
-  - 5m
-  - 15m
-  - 1h
+  timeframes: [1m, 5m]
   strategy: swing
   min_confidence: 0.12
 - symbol: BNB/USDC
-  timeframes:
-  - 1m
-  - 5m
-  - 15m
-  - 1h
+  timeframes: [1m, 5m]
   strategy: swing
   min_confidence: 0.12
 - symbol: XRP/USDC
-  timeframes:
-  - 1m
-  - 5m
-  - 15m
-  - 1h
+  timeframes: [1m, 5m]
   strategy: swing
   min_confidence: 0.12
 - symbol: ADA/USDC
-  timeframes:
-  - 1m
-  - 5m
-  - 15m
-  - 1h
+  timeframes: [1m, 5m]
   strategy: swing
   min_confidence: 0.12
 - symbol: AVAX/USDC
-  timeframes:
-  - 1m
-  - 5m
-  - 15m
-  - 1h
+  timeframes: [1m, 5m]
   strategy: swing
   min_confidence: 0.12
 - symbol: DOGE/USDC
-  timeframes:
-  - 1m
-  - 5m
-  - 15m
-  - 1h
+  timeframes: [1m, 5m]
   strategy: swing
   min_confidence: 0.12
-- symbol: PEPE/USDC
-  timeframes:
-  - 1m
-  - 5m
-  - 15m
-  - 1h
+- symbol: LINK/USDC
+  timeframes: [1m, 5m]
   strategy: swing
-  trailing_pct: 0.015
-  max_position_pct: 0.25
+  min_confidence: 0.12
+- symbol: DOT/USDC
+  timeframes: [1m, 5m]
+  strategy: swing
+  min_confidence: 0.12
+- symbol: LTC/USDC
+  timeframes: [1m, 5m]
+  strategy: swing
+  min_confidence: 0.12
+- symbol: TRX/USDC
+  timeframes: [1m, 5m]
+  strategy: swing
+  min_confidence: 0.12
+- symbol: ATOM/USDC
+  timeframes: [1m, 5m]
+  strategy: swing
+  min_confidence: 0.12
+- symbol: NEAR/USDC
+  timeframes: [1m, 5m]
+  strategy: swing
+  min_confidence: 0.12
+- symbol: SUI/USDC
+  timeframes: [1m, 5m]
+  strategy: swing
+  min_confidence: 0.12
+- symbol: APT/USDC
+  timeframes: [1m, 5m]
+  strategy: swing
+  min_confidence: 0.12
+- symbol: ARB/USDC
+  timeframes: [1m, 5m]
+  strategy: swing
+  min_confidence: 0.12
+- symbol: OP/USDC
+  timeframes: [1m, 5m]
+  strategy: swing
+  min_confidence: 0.12
+- symbol: INJ/USDC
+  timeframes: [1m, 5m]
+  strategy: swing
+  min_confidence: 0.12
+- symbol: TIA/USDC
+  timeframes: [1m, 5m]
+  strategy: swing
   min_confidence: 0.12
 risk:
   max_position_pct: 0.8
